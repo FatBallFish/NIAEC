@@ -64,8 +64,8 @@ data={"id":0,
       "type":"notice",
       "subtype":"upload",
       "data":{"base64":"{}".format(img_base64),"device":"camera1","content":"测试自动获取"}}
-# response = requests.post(url="http://www.helpaged.cn/api/notice?token={}".format(device_token),data=json.dumps(data),headers=headers)
-response = requests.post(url="http://127.0.0.1:8888/notice?token={}".format(device_token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://www.helpaged.cn/api/notice?token={}".format(device_token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8888/notice?token={}".format(device_token),data=json.dumps(data),headers=headers)
 
 # # 获取通知
 # data={"id":0,

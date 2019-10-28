@@ -1470,10 +1470,10 @@
 {
     "id":0,
     "type":"notice",
-    "subtype":"get",
+    "subtype":"info",
     "data":
     {
-        "mode":0
+        "event_id":"0776a9f8da57d91ffae9616d65243af9"
     }
 }
 ```
