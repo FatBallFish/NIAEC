@@ -526,10 +526,10 @@ def captcha():
                     "data": {}
                 })
             elif result == False:
-                # status -1 验证码hash值不匹配(包括验证码过期)。
+                # status 100 验证码hash值不匹配(包括验证码过期)。
                 return json.dumps({
                     "id": id,
-                    "status": -1,
+                    "status": 100,
                     "message": "Error captcha hash",
                     "data": {}
                 })
@@ -547,10 +547,10 @@ def captcha():
     elif data["type"] == "sms":
         if data["subtype"] == "generate":
             data = data["data"]
-            for key in data.keys():
+            for key in ["phone"]:
                 # if key not in ["phone","hash"]:
-                if key not in ["phone"]:
-                    # status -3 json的value错误。
+                if key not in data.keys():
+                    # status -3 Error data key | data_json key错误
                     return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
             # hash = data["hash"]
             # result = Redis.SafeCheck(hash)
@@ -558,8 +558,17 @@ def captcha():
             #     # status -4 json的value错误。
             #     return json.dumps({"id": id, "status": -4, "message": "Error Hash", "data": {}})
             phone = str(data["phone"])
+            command_type = 1
+            if "command_type" in data.keys():
+                command_type = data["command_type"]
             code = random.randint(10000, 99999)
-            result = SmsCaptcha.SendCaptchaCode(phone_number=phone, captcha=code, command_str="注册账号", ext=str(id))
+            if command_type == 1:
+                result = SmsCaptcha.SendCaptchaCode(phone_number=phone, captcha=code, command_str="注册账号", ext=str(id))
+            elif command_type == 2:
+                result = SmsCaptcha.SendCaptchaCode(phone_number=phone, captcha=code, command_str="找回密码", ext=str(id))
+            else:
+                # status -204 Arg's value error 键值对数据错误。
+                return json.dumps({"id": id, "status": -204, "message": "Arg's value error", "data": {}})
             status = result["result"]
             message = result["errmsg"]
             if message == "OK":
@@ -594,6 +603,38 @@ def captcha():
                     "id": id,
                     "status": status,
                     "message": message,
+                    "data": {}
+                })
+        elif data["subtype"] == "validate":
+            data = data["data"]
+            for key in data.keys():
+                if key not in ["hash"]:
+                    # status -3 json的value错误。
+                    return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            hash = data["hash"]
+            result = Redis.SafeCheck(hash)
+            if result == True:
+                # status 0 校验成功。
+                return json.dumps({
+                    "id": id,
+                    "status": 0,
+                    "message": "successful",
+                    "data": {}
+                })
+            elif result == False:
+                # status 100 验证码hash值不匹配(包括验证码过期)。
+                return json.dumps({
+                    "id": id,
+                    "status": 100,
+                    "message": "Error captcha hash",
+                    "data": {}
+                })
+            else:
+                # status -404 Unkown Error
+                return json.dumps({
+                    "id": id,
+                    "status": -404,
+                    "message": "Unknown Error",
                     "data": {}
                 })
         elif data["subtype"] == "delete":

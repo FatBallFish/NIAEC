@@ -114,7 +114,7 @@
 | -2     |
 | -1     |
 
-#### 图片验证码校验
+#### 验证码校验
 
 > **API说明**
 
@@ -133,7 +133,7 @@
 ```python
 {
     "id":事件ID, # 整数型
-    "type":"img",
+    "type":"img" or "sms",
     "subtype":"validate",
     "data":{"hash":"asddwfw……"}
 }
@@ -169,7 +169,7 @@
 {
   "id":请求时的ID,
   "status":-1, # 验证码hash值不匹配
-  "message":"验证码hash值不匹配",
+  "message":"Error captcha hash",
   "data":{},
 }
 ```
