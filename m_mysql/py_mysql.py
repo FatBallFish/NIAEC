@@ -836,48 +836,58 @@ def GetBindDevice(user_id: str)->tuple:
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()
         # status -200 Execute sql failed sql语句错误
-        return -200, "Failure to operate database",""
+        return -200, "Failure to operate database",[]
         # return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
     if num == 0:
         cur.close()
         # status 100 账号不存在
-        return 100,"user_id not exist", ""
+        return 100,"user_id not exist", []
         # return {"id": id, "status": 100, "message": "user_id not exist", "data": {}}
     elif num == 1:
         row = cur.fetchone()
-        device_name = row[0]
+        device_name = str(row[0])
         if device_name == "":
             # status 101 账号未绑定设备
-            return 101,"not bind device", ""
+            return 101,"not bind device", []
             # return {"id": id, "status": 101, "message": "not bind device", "data": {}}
-        return 0,"successful",device_name
+        device_list = device_name.split("|")
+        device_last = device_list.pop(-1)
+        if device_last != "":
+            device_list.append(device_last)
+        return 0,"successful",device_list
     else:
         # status -200 Execute sql failed sql语句错误
-        return -200,"Failure to operate database", ""
+        return -200,"Failure to operate database", []
         # return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
 
 def GetNoticeList(username: str, mode: int, id: int = -1) -> dict:
     ## 获取设备名
-    device_status,device_message,device_name = GetBindDevice(user_id=username)
+    device_status,device_message,device_list = GetBindDevice(user_id=username)
     if device_status != 0:
         return {"id":id,"status":device_status,"message":device_message,"data":{}}
     cur = conn.cursor()
+    device_sql = "("
+    for device in device_list:
+        device_sql = device_sql + "device = '{}' or ".format(device)
+    device_sql = device_sql.rpartition("or ")[0]
+    device_sql = device_sql + ")"
+
     ## 查询该设备发送的消息
     if mode == 0:  # 未读消息
         sql = "SELECT event_id,content,device,pic_name,createtime " \
               "FROM notice WHERE event_id NOT IN " \
               "(SELECT notice_user.event_id FROM notice_user " \
-              "WHERE notice_user.user_id = '{}' AND notice_user.count = 1) AND device = '{}' ORDER BY createtime ASC".format(username,
-                                                                                                     device_name)
+              "WHERE notice_user.user_id = '{}' AND notice_user.count = 1) AND {} ORDER BY createtime ASC".format(username,
+                                                                                                     device_sql)
     elif mode == 1:  # 已读消息
         sql = "SELECT event_id,content,device,pic_name,createtime " \
               "FROM notice WHERE event_id IN " \
               "(SELECT notice_user.event_id FROM notice_user " \
-              "WHERE notice_user.user_id = '{}' AND notice_user.count = 1) AND device = '{}' ORDER BY createtime ASC".format(username,
-                                                                                                     device_name)
+              "WHERE notice_user.user_id = '{}' AND notice_user.count = 1) AND {} ORDER BY createtime ASC".format(username,
+                                                                                                     device_sql)
     elif mode == 2:  # 全部消息
-        sql = "SELECT event_id,content,device,pic_name,createtime FROM notice WHERE device = '{}' ORDER BY createtime ASC".format(device_name)
+        sql = "SELECT event_id,content,device,pic_name,createtime FROM notice WHERE {} ORDER BY createtime ASC".format(device_sql)
     else:
         # status 102 mode value error
         return {"id": id, "status": 102, "message": "mode value error", "data": {}}
@@ -912,11 +922,16 @@ def GetNoticeList(username: str, mode: int, id: int = -1) -> dict:
 
 def GetNoticeInfo(username: str , event_id: str , id: int = -1)->dict:
     ## 获取设备名
-    device_status, device_message, device_name = GetBindDevice(user_id=username)
+    device_status, device_message, device_list = GetBindDevice(user_id=username)
     if device_status != 0:
         return {"id": id, "status": device_status, "message": device_message, "data": {}}
     cur = conn.cursor()
-    sql = "SELECT event_id,content,device,pic_name,createtime FROM notice WHERE event_id = '{}' AND device = '{}'".format(event_id,device_name)
+    device_sql = "("
+    for device in device_list:
+        device_sql = device_sql + "device = '{}' or ".format(device)
+    device_sql = device_sql.rpartition("or ")[0]
+    device_sql = device_sql + ")"
+    sql = "SELECT event_id,content,device,pic_name,createtime FROM notice WHERE event_id = '{}' AND {}".format(event_id,device_sql)
     try:
         Lock.acquire(GetNoticeInfo, "GetNoticeInfo")
         num = cur.execute(sql)
@@ -932,7 +947,10 @@ def GetNoticeInfo(username: str , event_id: str , id: int = -1)->dict:
         # status 200 GetNotice error
         return {"id":id,"status":200,"message":"GetNotice error","data":{}}
     row = cur.fetchone()
+    # rows = cur.fetchall()
     cur.close()
+    # notice_list = []
+    # for row in rows:
     notice_dict = {}
     notice_dict["event_id"] = row[0]
     notice_dict["content"] = row[1]
@@ -942,8 +960,9 @@ def GetNoticeInfo(username: str , event_id: str , id: int = -1)->dict:
     img_base64 = str(base64.b64encode(img_bytes), "utf-8")
     notice_dict["base64"] = img_base64
     notice_dict["createtime"] = str(row[4])
+        # notice_list.append(notice_dict)
     # status 0 成功处理事件
-    return {"id": id, "status": 0, "message": "successful", "data": notice_dict}
+    return {"id": id, "status": 0, "message": "successful", "data": {notice_dict}}
 
 def CheckDeviceIfExist(device:str)->bool:
     cur = conn.cursor()
@@ -976,7 +995,7 @@ def AddDevice(device: str, id: int = -1) -> dict:
     cur = conn.cursor()
     sql = "INSERT INTO devices (device_id,device_name) VALUES ('{}','{}')".format(device_id, device)
     try:
-        Lock.acquire(AddDevice, "GetFallPicList")
+        Lock.acquire(AddDevice, "AddDevice")
         num = cur.execute(sql)
         conn.commit()
         Lock.release()

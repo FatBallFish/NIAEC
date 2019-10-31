@@ -53,27 +53,27 @@ token = "3f5bba4da0e98041cc6eea3845072712"
 # # response = requests.post(url="http://www.helpaged.cn/api/device?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8888/device?token={}".format(token),data=json.dumps(data),headers=headers)
 
-device_token = "19ab376850337874ad19b2a958684bc4"
-## 上传摔倒图片
-with open("./temp/temp.png","rb") as f:
-      file_data = f.read()
-# print(file_data)
-img_base64 = str(base64.b64encode(file_data),"utf-8")
-print("base64:\n{}".format(img_base64))
-data={"id":0,
-      "type":"notice",
-      "subtype":"upload",
-      "data":{"base64":"{}".format(img_base64),"device":"camera1","content":"测试自动获取"}}
-response = requests.post(url="http://www.helpaged.cn/api/notice?token={}".format(device_token),data=json.dumps(data),headers=headers)
-# response = requests.post(url="http://127.0.0.1:8888/notice?token={}".format(device_token),data=json.dumps(data),headers=headers)
-
-# # 获取通知
+# device_token = "19ab376850337874ad19b2a958684bc4"
+# ## 上传摔倒图片
+# with open("./temp/temp.png","rb") as f:
+#       file_data = f.read()
+# # print(file_data)
+# img_base64 = str(base64.b64encode(file_data),"utf-8")
+# print("base64:\n{}".format(img_base64))
 # data={"id":0,
 #       "type":"notice",
-#       "subtype":"get",
-#       "data":{"mode":0}}
+#       "subtype":"upload",
+#       "data":{"base64":"{}".format(img_base64),"device":"camera1","content":"测试自动获取"}}
+# response = requests.post(url="http://www.helpaged.cn/api/notice?token={}".format(device_token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8888/notice?token={}".format(device_token),data=json.dumps(data),headers=headers)
+
+# 获取通知
+data={"id":0,
+      "type":"notice",
+      "subtype":"get",
+      "data":{"mode":2}}
 # response = requests.post(url="http://www.helpaged.cn/api/get/notice?token={}".format(token),data=json.dumps(data),headers=headers)
-# # response = requests.post(url="http://127.0.0.1:8888/get/notice?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8888/get/notice?token={}".format(token),data=json.dumps(data),headers=headers)
 
 # # 标记通知
 # data={"id":0,
