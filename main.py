@@ -784,7 +784,22 @@ def device():
                     # status -3 json的value错误。
                     return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
             device_name = data["device"]
-            json_dict = MySQL.AddDevice(device=device_name,id=id)
+            json_dict = MySQL.AddDevice(device=device_name, id=id)
+            return json.dumps(json_dict)
+        elif subtype == "list":
+            json_dict = MySQL.GetDeviceList(username=username, id=id)
+            return json.dumps(json_dict)
+        elif subtype == "info":
+            device_id = ""
+            device_name = ""
+            if "device_id" in data.keys():
+                device_id = data["device_id"]
+            elif "device_name" in data.keys():
+                device_name = data["device_name"]
+            else:
+                # status -3 json的value错误。
+                return json.dumps({"id": id, "status": -3, "message": "Error data key", "data": {}})
+            json_dict = MySQL.GetDeviceInfo(device_name=device_name, device_id=device_id, id=id)
             return json.dumps(json_dict)
         else:
             # status -2 json的value错误。
@@ -944,7 +959,7 @@ def get_notice():
             if not isinstance(event_id, str):
                 # status -203 Arg's value type error
                 return {"id": id, "status": -203, "message": "Arg's value type error", "data": {}}
-            json_dict = MySQL.GetNoticeInfo(username=username,event_id=event_id,id=id)
+            json_dict = MySQL.GetNoticeInfo(username=username, event_id=event_id, id=id)
             MySQL.SignNotice(username=username, event_id=event_id, id=id)
             return json.dumps(json_dict)
         else:

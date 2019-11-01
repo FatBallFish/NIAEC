@@ -67,13 +67,13 @@ token = "3f5bba4da0e98041cc6eea3845072712"
 # response = requests.post(url="http://www.helpaged.cn/api/notice?token={}".format(device_token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8888/notice?token={}".format(device_token),data=json.dumps(data),headers=headers)
 
-# 获取通知
-data={"id":0,
-      "type":"notice",
-      "subtype":"get",
-      "data":{"mode":2}}
-# response = requests.post(url="http://www.helpaged.cn/api/get/notice?token={}".format(token),data=json.dumps(data),headers=headers)
-response = requests.post(url="http://127.0.0.1:8888/get/notice?token={}".format(token),data=json.dumps(data),headers=headers)
+# # 获取通知
+# data={"id":0,
+#       "type":"notice",
+#       "subtype":"get",
+#       "data":{"mode":2}}
+# # response = requests.post(url="http://www.helpaged.cn/api/get/notice?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8888/get/notice?token={}".format(token),data=json.dumps(data),headers=headers)
 
 # # 标记通知
 # data={"id":0,
@@ -83,6 +83,21 @@ response = requests.post(url="http://127.0.0.1:8888/get/notice?token={}".format(
 # # response = requests.post(url="http://www.helpaged.cn/api/get/notice?token={}".format(token),data=json.dumps(data),headers=headers)
 # response = requests.post(url="http://127.0.0.1:8888/get/notice?token={}".format(token),data=json.dumps(data),headers=headers)
 
+# # 获取设备列表
+# data={"id":0,
+#       "type":"device",
+#       "subtype":"list",
+#       "data":{}}
+# # response = requests.post(url="http://www.helpaged.cn/api/device?token={}".format(token),data=json.dumps(data),headers=headers)
+# response = requests.post(url="http://127.0.0.1:8888/device?token={}".format(token),data=json.dumps(data),headers=headers)
+
+# 获取设备信息
+data={"id":0,
+      "type":"device",
+      "subtype":"info",
+      "data":{"device_name":"camera1"}}
+# response = requests.post(url="http://www.helpaged.cn/api/device?token={}".format(token),data=json.dumps(data),headers=headers)
+response = requests.post(url="http://127.0.0.1:8888/device?token={}".format(token),data=json.dumps(data),headers=headers)
 
 print(response.text)
 

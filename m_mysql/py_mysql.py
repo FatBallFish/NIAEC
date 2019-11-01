@@ -784,20 +784,21 @@ def AddFallPic(pic_name: str, device_name: str, content: str = "", id: int = -1)
     if num == 1:
         info_list = GetDevice2PhoneList(device=device_name)
         for info in info_list:
-            result = Sms.SendFallMessage(info["phone"],info["name"])
+            result = Sms.SendFallMessage(info["phone"], info["name"])
             sms_status = result["result"]
             sms_message = result["errmsg"]
             if sms_message == "OK":
                 sms_message = "Successful"
             if sms_status != 0:
-                return {"id":id,"status":sms_status,"message":sms_message,"data":{}}
+                return {"id": id, "status": sms_status, "message": sms_message, "data": {}}
         # status 0 事件成功处理
         return {"id": id, "status": 0, "message": "Successful", "data": {"pic_name": pic_name}}
     else:
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
-def GetDevice2PhoneList(device:str)->list:
+
+def GetDevice2PhoneList(device: str) -> list:
     cur = conn.cursor()
     sql = "SELECT phone,`name` FROM usersinfo WHERE device = '{}'".format(device)
     info_list = []
@@ -817,12 +818,14 @@ def GetDevice2PhoneList(device:str)->list:
         rows = cur.fetchall()
         cur.close()
         for row in rows:
-            info_list.append({"phone":row[0],"name":row[1]})
+            info_list.append({"phone": row[0], "name": row[1]})
         return info_list
     else:
         cur.close()
         return info_list
-def GetBindDevice(user_id: str)->tuple:
+
+
+def GetBindDevice(user_id: str) -> tuple:
     cur = conn.cursor()
     ## 获取设备名
     sql = "SELECT device FROM usersinfo WHERE phone = '{}'".format(user_id)
@@ -836,36 +839,36 @@ def GetBindDevice(user_id: str)->tuple:
         log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
         Auto_KeepConnect()
         # status -200 Execute sql failed sql语句错误
-        return -200, "Failure to operate database",[]
+        return -200, "Failure to operate database", []
         # return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
     if num == 0:
         cur.close()
         # status 100 账号不存在
-        return 100,"user_id not exist", []
+        return 100, "user_id not exist", []
         # return {"id": id, "status": 100, "message": "user_id not exist", "data": {}}
     elif num == 1:
         row = cur.fetchone()
         device_name = str(row[0])
         if device_name == "":
             # status 101 账号未绑定设备
-            return 101,"not bind device", []
+            return 101, "not bind device", []
             # return {"id": id, "status": 101, "message": "not bind device", "data": {}}
         device_list = device_name.split("|")
         device_last = device_list.pop(-1)
         if device_last != "":
             device_list.append(device_last)
-        return 0,"successful",device_list
+        return 0, "successful", device_list
     else:
         # status -200 Execute sql failed sql语句错误
-        return -200,"Failure to operate database", []
+        return -200, "Failure to operate database", []
         # return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
 
 def GetNoticeList(username: str, mode: int, id: int = -1) -> dict:
     ## 获取设备名
-    device_status,device_message,device_list = GetBindDevice(user_id=username)
+    device_status, device_message, device_list = GetBindDevice(user_id=username)
     if device_status != 0:
-        return {"id":id,"status":device_status,"message":device_message,"data":{}}
+        return {"id": id, "status": device_status, "message": device_message, "data": {}}
     cur = conn.cursor()
     device_sql = "("
     for device in device_list:
@@ -878,16 +881,19 @@ def GetNoticeList(username: str, mode: int, id: int = -1) -> dict:
         sql = "SELECT event_id,content,device,pic_name,createtime " \
               "FROM notice WHERE event_id NOT IN " \
               "(SELECT notice_user.event_id FROM notice_user " \
-              "WHERE notice_user.user_id = '{}' AND notice_user.count = 1) AND {} ORDER BY createtime ASC".format(username,
-                                                                                                     device_sql)
+              "WHERE notice_user.user_id = '{}' AND notice_user.count = 1) AND {} ORDER BY createtime ASC".format(
+            username,
+            device_sql)
     elif mode == 1:  # 已读消息
         sql = "SELECT event_id,content,device,pic_name,createtime " \
               "FROM notice WHERE event_id IN " \
               "(SELECT notice_user.event_id FROM notice_user " \
-              "WHERE notice_user.user_id = '{}' AND notice_user.count = 1) AND {} ORDER BY createtime ASC".format(username,
-                                                                                                     device_sql)
+              "WHERE notice_user.user_id = '{}' AND notice_user.count = 1) AND {} ORDER BY createtime ASC".format(
+            username,
+            device_sql)
     elif mode == 2:  # 全部消息
-        sql = "SELECT event_id,content,device,pic_name,createtime FROM notice WHERE {} ORDER BY createtime ASC".format(device_sql)
+        sql = "SELECT event_id,content,device,pic_name,createtime FROM notice WHERE {} ORDER BY createtime ASC".format(
+            device_sql)
     else:
         # status 102 mode value error
         return {"id": id, "status": 102, "message": "mode value error", "data": {}}
@@ -920,7 +926,7 @@ def GetNoticeList(username: str, mode: int, id: int = -1) -> dict:
     return {"id": id, "status": 0, "message": "successful", "data": {"num": num, "list": notice_list}}
 
 
-def GetNoticeInfo(username: str , event_id: str , id: int = -1)->dict:
+def GetNoticeInfo(username: str, event_id: str, id: int = -1) -> dict:
     ## 获取设备名
     device_status, device_message, device_list = GetBindDevice(user_id=username)
     if device_status != 0:
@@ -931,7 +937,8 @@ def GetNoticeInfo(username: str , event_id: str , id: int = -1)->dict:
         device_sql = device_sql + "device = '{}' or ".format(device)
     device_sql = device_sql.rpartition("or ")[0]
     device_sql = device_sql + ")"
-    sql = "SELECT event_id,content,device,pic_name,createtime FROM notice WHERE event_id = '{}' AND {}".format(event_id,device_sql)
+    sql = "SELECT event_id,content,device,pic_name,createtime FROM notice WHERE event_id = '{}' AND {}".format(event_id,
+                                                                                                               device_sql)
     try:
         Lock.acquire(GetNoticeInfo, "GetNoticeInfo")
         num = cur.execute(sql)
@@ -945,7 +952,7 @@ def GetNoticeInfo(username: str , event_id: str , id: int = -1)->dict:
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
     if num != 1:
         # status 200 GetNotice error
-        return {"id":id,"status":200,"message":"GetNotice error","data":{}}
+        return {"id": id, "status": 200, "message": "GetNotice error", "data": {}}
     row = cur.fetchone()
     # rows = cur.fetchall()
     cur.close()
@@ -960,11 +967,12 @@ def GetNoticeInfo(username: str , event_id: str , id: int = -1)->dict:
     img_base64 = str(base64.b64encode(img_bytes), "utf-8")
     notice_dict["base64"] = img_base64
     notice_dict["createtime"] = str(row[4])
-        # notice_list.append(notice_dict)
+    # notice_list.append(notice_dict)
     # status 0 成功处理事件
-    return {"id": id, "status": 0, "message": "successful", "data": {notice_dict}}
+    return {"id": id, "status": 0, "message": "successful", "data": notice_dict}
 
-def CheckDeviceIfExist(device:str)->bool:
+
+def CheckDeviceIfExist(device: str) -> bool:
     cur = conn.cursor()
     sql = "SELECT COUNT(device_name) AS num FROM devices WHERE device_name = '{}'".format(device)
     try:
@@ -1017,7 +1025,7 @@ def AddDevice(device: str, id: int = -1) -> dict:
 
 def BindDevice(username: str, device_id: str, id: int = -1) -> dict:
     cur = conn.cursor()
-    # check device
+    # check device,因为用的是device_id进行筛选，故无法使用BindDevice函数
     sql = "SELECT device_name FROM devices WHERE device_id = '{}'".format(device_id)
     try:
         Lock.acquire(BindDevice, "BindDevice")
@@ -1038,7 +1046,18 @@ def BindDevice(username: str, device_id: str, id: int = -1) -> dict:
         pass
     row = cur.fetchone()
     device_name = row[0]
-    sql = "UPDATE usersinfo SET device = '{}' WHERE phone = '{}'".format(device_name, username)
+
+    device_status, device_message, device_list = GetBindDevice(user_id=username)
+    if device_status != 0:
+        return {"id": id, "status": device_status, "message": device_message, "data": {}}
+    if device_list.count(device_name) != 0:
+        # status 101 The device has already be bind 该账号已绑定该设备
+        return {"id": id, "status": 101, "message": "The device has already be bind", "data": {}}
+    device_list.append(device_name)
+    device_str = ""
+    for device in device_list:
+        device_str = device_str + device + "|"
+    sql = "UPDATE usersinfo SET device = '{}' WHERE phone = '{}'".format(device_str, username)
     try:
         Lock.acquire(BindDevice, "BindDevice")
         num = cur.execute(sql)
@@ -1059,6 +1078,104 @@ def BindDevice(username: str, device_id: str, id: int = -1) -> dict:
     else:
         # status -200 Execute sql failed sql语句错误
         return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+
+def GetDeviceList(username: str, id: int = -1) -> dict:
+    device_status, device_message, device_list = GetBindDevice(user_id=username)
+    if device_status != 0:
+        return {"id": id, "status": device_status, "message": device_message, "data": {}}
+    device_info_list = []
+    for device in device_list:
+        device_info_dict = {}
+        device_status, device_message, device_id, device_name = GetDeviceInfo2(device_name=device)
+        if device_status != 0:
+            return {"id": id, "status": device_status, "message": device_message, "data": {}}
+        device_info_dict["device_id"] = device_id
+        device_info_dict["device_name"] = device_name
+        device_info_list.append(device_info_dict)
+    # status 0 Successful 成功
+    return {"id": id, "status": 0, "message": "Successful",
+            "data": {"num": len(device_info_list), "list": device_info_list}}
+
+
+def GetDeviceInfo(device_name: str = "", device_id: str = "", id: int = -1) -> dict:
+    cur = conn.cursor()
+    if device_name == "" and device_id == "":
+        # status 100 Error device_name or device_id 设备名或设备id未传递
+        return {"id": id, "status": 100, "message": "Error device_name or device_id", "data": {}}
+    sql = ""
+    if device_name == "":
+        sql = "SELECT device_id,device_name FROM devices WHERE device_id = '{}'".format(device_id)
+    elif device_id == "":
+        sql = "SELECT device_id,device_name FROM devices WHERE device_name = '{}'".format(device_name)
+    try:
+        Lock.acquire(GetDeviceInfo, "GetDeviceInfo")
+        num = cur.execute(sql)
+        Lock.release()
+    except Exception as e:
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num == 0:
+        cur.close()
+        # status -200 No Such Device 设备不存在
+        return {"id": id, "status": 101, "message": "No Such Device", "data": {}}
+    elif num == 1:
+        row = cur.fetchone()
+        cur.close()
+        device_dict = {}
+        device_dict["device_id"] = row[0]
+        device_dict["device_name"] = row[1]
+        # status 0 successful 成功
+        return {"id": id, "status": 0, "message": "Successful", "data": device_dict}
+    else:
+        cur.close()
+        # status -200 Execute sql failed sql语句错误
+        return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+
+
+def GetDeviceInfo2(device_name: str = "", device_id: str = "") -> tuple:
+    cur = conn.cursor()
+    if device_name == "" and device_id == "":
+        # status 102 Error device_name or device_id 设备名或设备id未传递
+        return 102, "Error device_name or device_id", "", ""
+        # return {"id": id, "status": 102, "message": "Error device_name or device_id", "data": {}}
+    sql = ""
+    if device_name == "":
+        sql = "SELECT device_id,device_name FROM devices WHERE device_id = '{}'".format(device_id)
+    elif device_id == "":
+        sql = "SELECT device_id,device_name FROM devices WHERE device_name = '{}'".format(device_name)
+    try:
+        Lock.acquire(GetDeviceInfo, "GetDeviceInfo")
+        num = cur.execute(sql)
+        Lock.release()
+    except Exception as e:
+        cur.close()
+        print("Failed to execute sql:{}|{}".format(sql, e))
+        log_mysql.error("Failed to execute sql:{}|{}".format(sql, e))
+        Auto_KeepConnect()
+        # status -200 Execute sql failed sql语句错误
+        return 200, "Failure to operate database", "", ""
+        # return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
+    if num == 0:
+        cur.close()
+        # status -200 No Such Device 设备不存在
+        return 103, "No Such Device", "", ""
+        # return {"id": id, "status": 103, "message": "No Such Device", "data": {}}
+    elif num == 1:
+        row = cur.fetchone()
+        cur.close()
+        # status 0 successful 成功
+        return 0, "Successful", row[0], row[1]
+        # return {"id": id, "status": 0, "message": "Successful", "data": device_dict}
+    else:
+        cur.close()
+        # status -200 Execute sql failed sql语句错误
+        return 200, "Failure to operate database", "", ""
+        # return {"id": id, "status": -200, "message": "Failure to operate database", "data": {}}
 
 
 def CheckEventIfExist(event_id: str) -> bool:

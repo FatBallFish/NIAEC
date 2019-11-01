@@ -1242,9 +1242,187 @@
 
 > **局部status表**
 
-| status | message             | 内容         |
-| ------ | ------------------- | ------------ |
-| 100    | device_id not exist | 设备id不存在 |
+| status | message                        | 内容               |
+| ------ | ------------------------------ | ------------------ |
+| 100    | device_id not exist            | 设备id不存在       |
+| 101    | The device has already be bind | 该账号已绑定该设备 |
+
+#### 设备类·获取设备列表
+
+> **API说明**
+
+此API获取该用户绑定的所有设备信息，以列表返回。
+
+> **API类型**
+
+**请求类型：`POST`**
+
+> **API地址：**
+
+**http://www.helpaged.cn/api/device?token=**
+
+> **url 参数表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |       备注        |
+| :---: | :------: | :------: | :------: | :------: | :------------------------------: | :---------------: |
+| token |          |          |  string  |    32    | debc454ea24827b67178482fd73f37c3 | 由登录api返回获得 |
+
+> **POST发送请求的json文本**
+
+```python
+{
+    "id":0,
+    "type":"device",
+    "subtype":"list",
+    "data":{}
+}
+```
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": 0, 
+    "status": 0, 
+    "message": "successful", 
+    "data": {
+        "num": 1, 
+        "list": [
+            {"device_id": "19ab376850337874ad19b2a958684bc4", "device_name": "camera1"}
+        ]
+    }
+}
+
+
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": 1,
+    "message": "Token not existed", 
+    "data": {}
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -203   |
+| -200   |
+| -101   |
+| -100   |
+| -3     |
+| -2     |
+| -1     |
+
+> **局部status表**
+
+| status | message                        | 内容                 |
+| ------ | ------------------------------ | -------------------- |
+| 100    | user_id not exist              | 账号不存在           |
+| 101    | not bind device                | 账号未绑定设备       |
+| 102    | Error device_name or device_id | 设备名或设备id未传递 |
+| 103    | No Such Device                 | 设备不存在           |
+
+#### 设备类·获取设备信息
+
+> **API说明**
+
+此API获取该用户绑定的所有设备信息，以列表返回。
+
+> **API类型**
+
+**请求类型：`POST`**
+
+> **API地址：**
+
+**http://www.helpaged.cn/api/device?token=**
+
+> **url 参数表**
+
+| 参数  | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |       备注        |
+| :---: | :------: | :------: | :------: | :------: | :------------------------------: | :---------------: |
+| token |          |          |  string  |    32    | debc454ea24827b67178482fd73f37c3 | 由登录api返回获得 |
+
+> **POST发送请求的json文本**
+
+```python
+{
+    "id":0,
+    "type":"device",
+    "subtype":"info",
+    "data":{
+        "device_id":"19ab376850337874ad19b2a958684bc4",
+        "device_name":"camera1"
+    }
+}
+```
+
+> **data字段表**
+
+|    参数     | 可否为空 | 可否缺省 | 数据类型 | 字段长度 |               例子               |     备注     |
+| :---------: | :------: | :------: | :------: | :------: | :------------------------------: | :----------: |
+|  device_id  |          |    √     |   str    |    32    | 19ab376850337874ad19b2a958684bc4 | 设备id token |
+| device_name |          |    √     |   str    |          |             camera1              |   设备名称   |
+
+> ## 注意
+
+1. 两个参数不可同时缺省
+2. 两个参数同时传递则只使用device_id参数
+
+> **Python端返回成功处理情况**
+
+```python
+{
+    "id": 0, 
+    "status": 0, 
+    "message": "successful", 
+    "data": {
+        "device_id": "19ab376850337874ad19b2a958684bc4", 
+        "device_name": "camera1"
+    }
+}
+
+
+```
+
+> **Python端返回失败处理情况**
+
+```python
+{
+    "id": -1, 
+    "status": 1,
+    "message": "Token not existed", 
+    "data": {}
+}
+```
+
+> **所用到的全局status**
+
+全局参数详情请看[全局Status表](#全局Status表)
+
+| status |
+| ------ |
+| -203   |
+| -200   |
+| -101   |
+| -100   |
+| -3     |
+| -2     |
+| -1     |
+
+> **局部status表**
+
+| status | message                        | 内容                 |
+| ------ | ------------------------------ | -------------------- |
+| 100    | Error device_name or device_id | 设备名或设备id未传递 |
+| 101    | No Such Device                 | 设备不存在           |
 
 ## **摔倒通知类**
 
